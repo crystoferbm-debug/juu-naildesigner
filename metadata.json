@@ -1,0 +1,5 @@
+{
+  "name": "Nail Designer Dashboard",
+  "description": "A dashboard for nail designers to manage their clients and appointments. It allows tracking client information, scheduling appointments, and viewing key business metrics.",
+  "requestFramePermissions": []
+}
