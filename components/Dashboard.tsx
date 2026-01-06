@@ -3,6 +3,7 @@ import React from 'react';
 import type { Client, Appointment } from '../types';
 import { SERVICES } from '../constants';
 import { UsersIcon, CalendarIcon, DollarSignIcon } from './Icons';
+import { FinancialReport } from './FinancialReport';
 
 interface DashboardProps {
   clients: Client[];
@@ -102,6 +103,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ clients, appointments }) =
                     )}
                 </div>
             </div>
+
+            {/* Financial Report */}
+            <FinancialReport appointments={appointments} />
         </div>
     );
 };

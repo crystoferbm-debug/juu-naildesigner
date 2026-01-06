@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { HomeIcon, UsersIcon, CalendarIcon, NailPolishIcon, LogOutIcon } from './Icons';
+import React, { useRef } from 'react';
+import { HomeIcon, UsersIcon, CalendarIcon, NailPolishIcon, LogOutIcon, DownloadIcon, UploadIcon } from './Icons';
 
 type View = 'dashboard' | 'clients' | 'schedule';
 
@@ -17,6 +17,77 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, o
     { id: 'clients', label: 'Clientes', icon: UsersIcon },
     { id: 'schedule', label: 'Agenda', icon: CalendarIcon },
   ];
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => {
+    try {
+      const backupData: { [key: string]: string | null } = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('naildash_') || key.startsWith('clients_') || key.startsWith('appointments_'))) {
+          backupData[key] = localStorage.getItem(key);
+        }
+      }
+      const jsonString = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'naildash_backup.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('Dados exportados com sucesso!');
+    } catch (error) {
+      console.error("Erro ao exportar dados:", error);
+      alert('Ocorreu um erro ao exportar os dados.');
+    }
+  };
+  
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result;
+        if (typeof text !== 'string') {
+          throw new Error("Formato de arquivo inválido.");
+        }
+        const data = JSON.parse(text);
+        
+        if (!data.naildash_users) {
+          throw new Error("Arquivo de backup não parece ser válido.");
+        }
+
+        if (window.confirm('Atenção: A importação de dados substituirá todas as informações atuais. Deseja continuar?')) {
+          Object.keys(data).forEach(key => {
+            if (typeof data[key] === 'string') {
+               localStorage.setItem(key, data[key]);
+            }
+          });
+          alert('Dados importados com sucesso! A aplicação será recarregada.');
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error("Erro ao importar dados:", error);
+        alert(`Ocorreu um erro ao importar os dados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      } finally {
+        // Reset file input value to allow importing the same file again
+        if(fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const NavLink: React.FC<{
     id: View;
@@ -60,17 +131,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, o
         ))}
       </div>
       <div className="mt-auto">
-        <div className='px-4 py-3 mb-2'>
+        <div className='px-4 py-3 mb-2 border-t border-b border-pink-100'>
             <p className='text-sm font-medium text-slate-700'>Logada como:</p>
             <p className='text-sm font-bold text-pink-700 truncate'>{username}</p>
         </div>
+        
+        {/* Data Management */}
+        <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+        <button onClick={handleImportClick} className="flex items-center w-full text-left px-4 py-3 my-1 rounded-lg text-slate-600 hover:bg-pink-100 hover:text-pink-700 transition-all duration-200">
+            <UploadIcon className="h-6 w-6 mr-3" />
+            <span className="text-sm font-semibold">Importar Dados</span>
+        </button>
+         <button onClick={handleExport} className="flex items-center w-full text-left px-4 py-3 my-1 rounded-lg text-slate-600 hover:bg-pink-100 hover:text-pink-700 transition-all duration-200">
+            <DownloadIcon className="h-6 w-6 mr-3" />
+            <span className="text-sm font-semibold">Exportar Dados</span>
+        </button>
+
         <a
           href="#"
           onClick={(e) => {
             e.preventDefault();
             onLogout();
           }}
-          className="flex items-center px-4 py-3 my-1 rounded-lg text-slate-600 hover:bg-pink-100 hover:text-pink-700 transition-all duration-200"
+          className="flex items-center px-4 py-3 mt-2 rounded-lg text-slate-600 hover:bg-pink-100 hover:text-pink-700 transition-all duration-200 border-t border-pink-100"
         >
           <LogOutIcon className="h-6 w-6 mr-3" />
           <span className="text-sm font-semibold">Sair</span>
