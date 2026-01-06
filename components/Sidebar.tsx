@@ -1,15 +1,17 @@
 
 import React from 'react';
-import { HomeIcon, UsersIcon, CalendarIcon, NailPolishIcon } from './Icons';
+import { HomeIcon, UsersIcon, CalendarIcon, NailPolishIcon, LogOutIcon } from './Icons';
 
 type View = 'dashboard' | 'clients' | 'schedule';
 
 interface SidebarProps {
   currentView: View;
   setCurrentView: (view: View) => void;
+  onLogout: () => void;
+  username: string;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, onLogout, username }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
     { id: 'clients', label: 'Clientes', icon: UsersIcon },
@@ -57,9 +59,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView })
           />
         ))}
       </div>
-       <div className="p-4 mt-auto rounded-lg bg-pink-100/50 text-center">
-        <p className="text-sm text-pink-800">Organize sua paixão.</p>
-        <p className="text-xs text-pink-600 mt-1">Sua arte, sob controle.</p>
+      <div className="mt-auto">
+        <div className='px-4 py-3 mb-2'>
+            <p className='text-sm font-medium text-slate-700'>Logada como:</p>
+            <p className='text-sm font-bold text-pink-700 truncate'>{username}</p>
+        </div>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            onLogout();
+          }}
+          className="flex items-center px-4 py-3 my-1 rounded-lg text-slate-600 hover:bg-pink-100 hover:text-pink-700 transition-all duration-200"
+        >
+          <LogOutIcon className="h-6 w-6 mr-3" />
+          <span className="text-sm font-semibold">Sair</span>
+        </a>
       </div>
     </nav>
   );

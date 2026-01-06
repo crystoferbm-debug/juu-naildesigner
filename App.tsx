@@ -1,30 +1,62 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { Clients } from './components/Clients';
 import { Schedule } from './components/Schedule';
 import { Header } from './components/Header';
-import type { Client, Appointment } from './types';
+import { LoginPage } from './components/LoginPage';
+import type { Client, Appointment, User } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { DUMMY_CLIENTS, DUMMY_APPOINTMENTS } from './constants';
 
 type View = 'dashboard' | 'clients' | 'schedule';
 
 const App: React.FC = () => {
+  const [loggedInUser, setLoggedInUser] = useLocalStorage<User | null>('naildash_session', null);
+  const [users, setUsers] = useLocalStorage<User[]>('naildash_users', []);
   const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [clients, setClients] = useLocalStorage<Client[]>('clients', DUMMY_CLIENTS);
-  const [appointments, setAppointments] = useLocalStorage<Appointment[]>('appointments', DUMMY_APPOINTMENTS);
 
-  const addClient = (client: Omit<Client, 'id' | 'createdAt'>) => {
-    const newClient: Client = {
-      ...client,
-      id: `client_${Date.now()}`,
-      createdAt: new Date().toISOString(),
+  // Create dynamic keys for localStorage based on the logged-in user
+  const clientsKey = loggedInUser ? `clients_${loggedInUser.id}` : 'clients_anonymous';
+  const appointmentsKey = loggedInUser ? `appointments_${loggedInUser.id}` : 'appointments_anonymous';
+
+  const [clients, setClients] = useLocalStorage<Client[]>(clientsKey, []);
+  const [appointments, setAppointments] = useLocalStorage<Appointment[]>(appointmentsKey, []);
+
+  const handleRegister = (username: string, password: string): boolean => {
+    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        alert('Este nome de usuário já está em uso.');
+        return false;
+    }
+    const newUser: User = {
+        id: `user_${Date.now()}`,
+        username,
+        // In a real application, NEVER store plain text passwords. This should be a securely generated hash.
+        passwordHash: password,
     };
-    setClients(prev => [newClient, ...prev]);
+    setUsers([...users, newUser]);
+    alert('Usuário registrado com sucesso! Por favor, faça o login.');
+    return true;
   };
-  
+
+  const handleLogin = (username: string, password: string): boolean => {
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    // In a real application, you would compare the hashed password.
+    if (user && user.passwordHash === password) {
+        setLoggedInUser(user);
+        return true;
+    }
+    alert('Nome de usuário ou senha inválidos.');
+    return false;
+  };
+
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    // Clear data for anonymous user to avoid data leaks between sessions
+    setClients([]);
+    setAppointments([]);
+  };
+
   const addAppointment = (appointment: Omit<Appointment, 'id' | 'createdAt' | 'status'>) => {
     const newAppointment: Appointment = {
       ...appointment,
@@ -39,6 +71,27 @@ const App: React.FC = () => {
     });
   };
 
+  const addClient = (
+    client: Omit<Client, 'id' | 'createdAt' | 'avatarUrl'>,
+    appointmentData?: { serviceId: string; date: string }
+  ) => {
+    const clientId = `client_${Date.now()}`;
+    const newClient: Client = {
+      ...client,
+      id: clientId,
+      createdAt: new Date().toISOString(),
+      avatarUrl: `https://picsum.photos/seed/${clientId}/200/200`,
+    };
+    setClients(prev => [newClient, ...prev]);
+
+    if (appointmentData) {
+      addAppointment({
+        clientId: newClient.id,
+        ...appointmentData,
+      });
+    }
+  };
+  
   const updateAppointmentStatus = (appointmentId: string, status: 'scheduled' | 'completed' | 'cancelled') => {
     setAppointments(prev => prev.map(appt => appt.id === appointmentId ? { ...appt, status } : appt));
   };
@@ -61,10 +114,19 @@ const App: React.FC = () => {
         return <Dashboard {...props} />;
     }
   };
+  
+  if (!loggedInUser) {
+    return <LoginPage onLogin={handleLogin} onRegister={handleRegister} />;
+  }
 
   return (
     <div className="flex h-screen bg-pink-50 text-slate-800">
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+        onLogout={handleLogout} 
+        username={loggedInUser.username}
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           clients={clients} 

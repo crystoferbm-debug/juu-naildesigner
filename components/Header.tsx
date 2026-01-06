@@ -8,7 +8,10 @@ import type { Client, Appointment } from '../types';
 interface HeaderProps {
   currentView: string;
   clients: Client[];
-  addClient: (client: Omit<Client, 'id' | 'createdAt' | 'avatarUrl'>) => void;
+  addClient: (
+    client: Omit<Client, 'id' | 'createdAt' | 'avatarUrl'>,
+    appointmentData?: { serviceId: string; date: string }
+  ) => void;
   addAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt' | 'status'>) => void;
 }
 
