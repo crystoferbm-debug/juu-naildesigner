@@ -30,7 +30,7 @@ const ClientCard: React.FC<{ client: Client; appointmentCount: number; onDelete:
         </div>
         <button 
           onClick={handleDelete}
-          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-opacity"
+          className="text-slate-400 hover:text-red-500 transition-colors"
           aria-label="Excluir cliente"
         >
           <TrashIcon className="h-5 w-5"/>
