@@ -73,7 +73,7 @@ const App: React.FC = () => {
 
   const addClient = (
     client: Omit<Client, 'id' | 'createdAt' | 'avatarUrl'>,
-    appointmentData?: { serviceId: string; date: string }
+    appointmentData?: { serviceId: string; date: string; price: number }
   ) => {
     const clientId = `client_${Date.now()}`;
     const newClient: Client = {

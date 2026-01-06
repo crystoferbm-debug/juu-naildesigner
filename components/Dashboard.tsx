@@ -2,7 +2,7 @@
 import React from 'react';
 import type { Client, Appointment } from '../types';
 import { SERVICES } from '../constants';
-import { UsersIcon, CalendarIcon, NailPolishIcon } from './Icons';
+import { UsersIcon, CalendarIcon, DollarSignIcon } from './Icons';
 
 interface DashboardProps {
   clients: Client[];
@@ -31,8 +31,8 @@ const AppointmentItem: React.FC<{ appointment: Appointment, client?: Client }> =
                 <p className="text-sm text-slate-500">{service?.name || 'Serviço desconhecido'}</p>
             </div>
             <div className="text-right">
-                <p className="font-medium text-pink-600">{new Date(appointment.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-                <p className="text-xs text-slate-400">{new Date(appointment.date).toLocaleDateString('pt-BR')}</p>
+                 <p className="font-medium text-pink-600">{appointment.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                <p className="text-xs text-slate-400">{new Date(appointment.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}h</p>
             </div>
         </li>
     );
@@ -51,10 +51,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ clients, appointments }) =
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5);
         
-    const completedThisMonth = appointments.filter(a => {
+    const revenueThisMonth = appointments.filter(a => {
         const apptDate = new Date(a.date);
         return a.status === 'completed' && apptDate.getMonth() === today.getMonth() && apptDate.getFullYear() === today.getFullYear();
-    }).length;
+    }).reduce((total, appt) => total + appt.price, 0);
 
     return (
         <div className="space-y-8">
@@ -62,7 +62,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ clients, appointments }) =
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <StatCard title="Total de Clientes" value={clients.length} icon={UsersIcon} />
                 <StatCard title="Próximos Agendamentos" value={upcomingAppointments.length} icon={CalendarIcon} />
-                <StatCard title="Serviços Concluídos (Mês)" value={completedThisMonth} icon={NailPolishIcon} />
+                <StatCard title="Faturamento no Mês" value={revenueThisMonth.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} icon={DollarSignIcon} />
             </div>
 
             {/* Lists */}

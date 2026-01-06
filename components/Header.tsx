@@ -10,7 +10,7 @@ interface HeaderProps {
   clients: Client[];
   addClient: (
     client: Omit<Client, 'id' | 'createdAt' | 'avatarUrl'>,
-    appointmentData?: { serviceId: string; date: string }
+    appointmentData?: { serviceId: string; date: string; price: number }
   ) => void;
   addAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt' | 'status'>) => void;
 }

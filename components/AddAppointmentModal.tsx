@@ -16,10 +16,31 @@ export const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen
   const [serviceId, setServiceId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [price, setPrice] = useState('');
+
+  const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedServiceId = e.target.value;
+    setServiceId(selectedServiceId);
+    const service = SERVICES.find(s => s.id === selectedServiceId);
+    if (service) {
+      setPrice(service.price.toString());
+    } else {
+      setPrice('');
+    }
+  };
+
+  const handleClose = () => {
+    setClientId('');
+    setServiceId('');
+    setDate('');
+    setTime('');
+    setPrice('');
+    onClose();
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientId || !serviceId || !date || !time) {
+    if (!clientId || !serviceId || !date || !time || !price) {
       alert('Por favor, preencha todos os campos.');
       return;
     }
@@ -31,17 +52,14 @@ export const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen
       clientId,
       serviceId,
       date: appointmentDate.toISOString(),
+      price: parseFloat(price)
     });
 
-    setClientId('');
-    setServiceId('');
-    setDate('');
-    setTime('');
-    onClose();
+    handleClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Novo Agendamento">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Novo Agendamento">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="client" className="block text-sm font-medium text-slate-700">Cliente</label>
@@ -63,7 +81,7 @@ export const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen
           <select
             id="service"
             value={serviceId}
-            onChange={(e) => setServiceId(e.target.value)}
+            onChange={handleServiceChange}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md"
             required
           >
@@ -72,6 +90,20 @@ export const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen
               <option key={service.id} value={service.id}>{service.name}</option>
             ))}
           </select>
+        </div>
+         <div>
+            <label htmlFor="price" className="block text-sm font-medium text-slate-700">Preço (R$)</label>
+            <input
+              type="number"
+              id="price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
+              required
+              step="0.01"
+              min="0"
+              placeholder="0,00"
+            />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -98,7 +130,7 @@ export const AddAppointmentModal: React.FC<AddAppointmentModalProps> = ({ isOpen
           </div>
         </div>
         <div className="pt-4 flex justify-end space-x-2">
-          <button type="button" onClick={onClose} className="px-4 py-2 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
+          <button type="button" onClick={handleClose} className="px-4 py-2 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
             Cancelar
           </button>
           <button type="submit" className="px-4 py-2 bg-pink-500 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">

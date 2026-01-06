@@ -20,6 +20,7 @@ export interface Appointment {
   clientId: string;
   serviceId: string;
   date: string; // ISO string for date and time
+  price: number;
   notes?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
   createdAt: string;

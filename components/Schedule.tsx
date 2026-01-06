@@ -43,6 +43,7 @@ const AppointmentCard: React.FC<{
       <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-sm">
         <span className="text-slate-600 font-medium">
           {new Date(appointment.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+           <span className="text-slate-400 font-normal ml-2">({appointment.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</span>
         </span>
         <div className="flex space-x-2">
             {appointment.status === 'scheduled' && (

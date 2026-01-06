@@ -9,7 +9,7 @@ interface AddClientModalProps {
   onClose: () => void;
   onAddClient: (
     client: Omit<Client, 'id' | 'createdAt' | 'avatarUrl'>,
-    appointmentData?: { serviceId: string; date: string }
+    appointmentData?: { serviceId: string; date: string; price: number }
   ) => void;
 }
 
@@ -22,6 +22,18 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({ isOpen, onClose,
   const [serviceId, setServiceId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [price, setPrice] = useState('');
+
+  const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedServiceId = e.target.value;
+    setServiceId(selectedServiceId);
+    const service = SERVICES.find(s => s.id === selectedServiceId);
+    if (service) {
+      setPrice(service.price.toString());
+    } else {
+      setPrice('');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,28 +42,21 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({ isOpen, onClose,
       return;
     }
     
-    let appointmentData: { serviceId: string; date: string; } | undefined = undefined;
+    let appointmentData: { serviceId: string; date: string; price: number } | undefined = undefined;
 
-    if (serviceId && date && time) {
+    if (serviceId && date && time && price) {
         const [year, month, day] = date.split('-').map(Number);
         const [hours, minutes] = time.split(':').map(Number);
         const appointmentDate = new Date(year, month - 1, day, hours, minutes);
         appointmentData = {
             serviceId,
             date: appointmentDate.toISOString(),
+            price: parseFloat(price)
         };
     }
 
     onAddClient({ name, phone, email, notes }, appointmentData);
-    
-    setName('');
-    setPhone('');
-    setEmail('');
-    setNotes('');
-    setServiceId('');
-    setDate('');
-    setTime('');
-    onClose();
+    handleClose();
   };
 
   const handleClose = () => {
@@ -62,6 +67,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({ isOpen, onClose,
     setServiceId('');
     setDate('');
     setTime('');
+    setPrice('');
     onClose();
   }
 
@@ -119,12 +125,25 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({ isOpen, onClose,
             <div className="space-y-4">
                 <div>
                 <label htmlFor="service" className="block text-sm font-medium text-slate-700">Serviço</label>
-                <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md">
+                <select id="service" value={serviceId} onChange={handleServiceChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md">
                     <option value="" disabled>Selecione um serviço</option>
                     {SERVICES.map(service => (
                     <option key={service.id} value={service.id}>{service.name}</option>
                     ))}
                 </select>
+                </div>
+                <div>
+                    <label htmlFor="appointment-price" className="block text-sm font-medium text-slate-700">Preço (R$)</label>
+                    <input 
+                        type="number" 
+                        id="appointment-price" 
+                        value={price} 
+                        onChange={(e) => setPrice(e.target.value)} 
+                        className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
+                        step="0.01"
+                        min="0"
+                        placeholder="0,00"
+                    />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                 <div>
